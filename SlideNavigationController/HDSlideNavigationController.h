@@ -16,13 +16,14 @@ typedef enum{
     LEFT,RIGHT
 }AnimationDirection;
 
-@interface HDSlideNavigationController : UINavigationController<UINavigationControllerDelegate>
+@interface HDSlideNavigationController : UINavigationController<UINavigationControllerDelegate,UIGestureRecognizerDelegate>
 {
     NSMutableArray* items;
     NSInteger currentIndex;
     UIImageView* mirrorView;
     CGRect mirrorRect;
     BOOL isPush;
+    CGFloat firstX, firstY;
 }
 -(UIImage *)generatePreviousViewPage;
 @end

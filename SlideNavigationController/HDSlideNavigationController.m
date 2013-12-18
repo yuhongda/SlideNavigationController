@@ -33,6 +33,11 @@
         mirrorRect = mirrorView.bounds;
         mirrorView.center = self.view.center;
         mirrorView.alpha = MIRROR_ALPHA;
+        
+        UIPanGestureRecognizer* recognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
+        recognizer.delegate = self;
+        [self.view addGestureRecognizer:recognizer];
+        
         self.delegate = self;
     }
     return self;
@@ -108,7 +113,7 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
-
+/*
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event{
     if (items.count<=0) {
         return;
@@ -147,7 +152,54 @@
     }else{
         [self slideAnimation:LEFT];
     }
+}*/
+
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    return YES;
 }
+
+- (void)handlePan:(UIPanGestureRecognizer *)gestureRecognizer {
+    CGPoint location = [gestureRecognizer locationInView:self.view];
+    CGPoint velocity = [gestureRecognizer velocityInView:self.view];
+    double angle = atan2(velocity.y, velocity.x) * 180.0f /3.14159f;
+    
+    if (fabs(angle) > 45 && fabs(angle) < 135) {
+        NSLog(@"%@",@"up n' down");
+    }else{
+        
+        if (items.count<=0) {
+            return;
+        }
+        
+        if ([gestureRecognizer state] == UIGestureRecognizerStateBegan) {
+            firstX = location.x;
+            firstY = location.y;
+        }
+        
+        CGFloat offsetX = location.x-firstX;
+        if (self.view.frame.origin.x+offsetX>=0 && self.view.frame.origin.x+offsetX <= self.view.frame.size.width) {
+            self.view.center = CGPointMake(self.view.center.x+offsetX, self.view.center.y);
+            mirrorView.bounds = CGRectMake(0, 0, mirrorRect.size.width+(self.view.frame.origin.x/self.view.frame.size.width)*(1-MIRROR_RATIO)*mirrorRect.size.width, mirrorRect.size.height+(self.view.frame.origin.x/self.view.frame.size.width)*(1-MIRROR_RATIO)*mirrorRect.size.height);
+            mirrorView.alpha = MIRROR_ALPHA+(self.view.frame.origin.x/self.view.frame.size.width)*(1-MIRROR_ALPHA);
+        }
+        
+        
+        
+        if ([gestureRecognizer state] == UIGestureRecognizerStateEnded) {
+            if (items.count<=0) {
+                return;
+            }
+            
+            if (self.view.frame.origin.x >=self.view.frame.size.width/2) {
+                [self slideAnimation:RIGHT];
+            }else{
+                [self slideAnimation:LEFT];
+            }
+        }
+    }
+}
+
 
 -(void)slideAnimation:(AnimationDirection)direction{
     switch (direction) {
